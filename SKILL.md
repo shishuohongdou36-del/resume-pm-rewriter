@@ -230,3 +230,38 @@ description: |
 - 总述相关（业务理解、架构判断、角色边界）
 - 每条 bullet 的追问（机制细节、设计判断、边界case）
 - 成果相关（指标口径、数据归因、后续规划）
+
+---
+
+## 十一、辅助工具
+
+### JD 解析（scripts/jd_analyzer.py）
+
+当用户提供目标岗位 JD 时，使用此脚本提取关键词和能力要求，指导简历用词与 JD 对齐：
+- 从 URL 或本地文件解析 JD
+- 按 AI能力/产品能力/架构机制/业务场景/协作管理 五个维度提取关键词
+- 与简历内容匹配，输出覆盖率和缺失关键词建议
+
+```bash
+python scripts/jd_analyzer.py --url "JD链接"
+python scripts/jd_analyzer.py --file jd.txt --resume resume.txt
+```
+
+### 市场趋势扫描（scripts/market_scanner.py）
+
+改写前可先扫描当前市场对目标岗位的能力要求热度，确保简历用词与市场趋势对齐：
+- 搜索主流招聘平台的岗位信息
+- 按能力维度统计关键词热度
+- 输出简历优化建议
+
+```bash
+python scripts/market_scanner.py --role "AI产品经理"
+```
+
+### AI PM 术语表（references/ai_pm_glossary.md）
+
+改写过程中如果需要确认术语的正确用法，查阅此文件。包含：
+- AI 架构类术语（RAG/Agent/Workflow/Skill/Memory 等）的正确与错误用法
+- 产品机制类术语（意图路由/分层检索/评测闭环等）的简历表达方式
+- 高频动词替换表（"负责"→"主导"等）
+- 容易混淆概念的区分
