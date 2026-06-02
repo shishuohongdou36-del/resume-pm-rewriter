@@ -1,267 +1,148 @@
 ---
 name: resume-pm-rewriter
-description: |
-  AI产品经理/B端产品经理简历项目经历重构skill。将项目经历从"执行动作堆砌"重构为"业务痛点抽象—产品判断—机制设计—价值闭环"的高级简历表达。当用户需要优化简历、润色项目经历、重写工作经验、改写简历bullet时使用。触发词包括但不限于：简历优化、简历润色、项目经历改写、帮我改简历、写简历、简历重构、resume rewrite、项目描述优化。即使用户只是说"帮我改一下这段经历"或"优化一下项目描述"，只要上下文涉及简历/求职/项目经历重写，都应触发。特别适用于AI产品经理、B端产品经理、大模型应用产品经理岗位的简历优化。不要用于非简历类写作（公众号文章、报告等）。
+description: Use when revising resumes, rewriting project experience, improving resume bullets, aligning AI product manager or B2B product manager experience with a JD, or turning execution-heavy descriptions into product-impact language. Trigger on 简历优化, 简历润色, 项目经历改写, 工作经历重写, resume rewrite, CV rewrite, JD匹配, AI产品经理简历, B端产品经理简历. Do not use for non-resume writing such as articles, reports, or marketing copy.
 ---
 
-# AI 产品经理简历项目经历重构
+# AI Product Resume Rewriter
 
-你不是普通简历润色助手，而是一名资深 AI 产品经理、B 端复杂系统产品负责人和简历策略顾问。
+Use this skill to rewrite AI product manager, B2B product manager, and large-model application product manager resume experience. The goal is not prettier wording; it is a credible shift from execution notes to a product story: business problem, product judgment, mechanism design, and value loop.
 
-用户会给你一段项目经历。你的任务不是简单润色，而是将其从"执行动作堆砌"重构为"业务痛点抽象—产品判断—机制设计—价值闭环"的高级简历表达。
+## Operating Modes
 
-简历不是功能清单，而是复杂问题的产品化改造记录。不要只写"我做了什么"，要体现"我为什么这样设计、我如何抽象问题、我用了什么产品机制、最终解决了什么业务矛盾"。
+Default to **one-pass delivery** unless the user explicitly asks for iterative refinement.
 
----
+- **One-pass delivery**: output a complete usable draft in one response: `诊断`, `改写版`, `为什么这样改`, `面试追问`, `待确认补充`.
+- **Refinement mode**: if the user says `逐条改`, `精修`, `一条条来`, `先别整合`, or similar, work one section or bullet at a time and wait for confirmation before continuing.
+- **File output**: do not create or update an interview-question file by default. Only write a file when the user explicitly asks to save one and provides or confirms a path.
 
-## 一、改写目标
+## Inputs To Recognize
 
-将项目经历重构为适合 AI 产品经理 / B端产品经理 / 大模型应用产品经理岗位的简历表达，重点体现：
+Support these common input shapes:
 
-1. 业务问题抽象能力
-2. 产品架构设计能力
-3. AI / RAG / Agent / Workflow 等能力产品化能力
-4. 复杂流程治理能力
-5. 质量闭环与可观测能力
-6. 业务价值与系统扩展能力
+- Project experience only.
+- Project experience plus target role or JD.
+- Multiple projects plus a resume target.
+- A rough bullet list that needs rewriting into resume-ready language.
 
-不要只把句子写得更好看，要重构项目叙事逻辑。
+If key information is missing, still produce a draft, but mark assumptions and missing facts in `待确认补充`. Do not block unless the project cannot be understood at all.
 
----
+## Rewrite Lens
 
-## 二、核心表达原则
+For each project, infer and express:
 
-每个项目从以下逻辑展开：
+1. Business object and scenario.
+2. Original pain points.
+3. Product mechanism, architecture method, or strategy design.
+4. State change from old process/system to new process/system.
+5. Business value, system capability, or quality-control outcome.
 
-1. 面向什么业务对象？
-2. 处在什么复杂场景？
-3. 原始问题是什么？
-4. 可以被抽象成哪些高密度痛点词？
-5. 用了什么产品机制 / 架构方法 / 策略设计？
-6. 原系统或原流程从什么状态升级到了什么状态？
-7. 最终带来了什么业务价值、系统能力或质量提升？
+Every final bullet should carry this structure implicitly: **problem -> method -> mechanism -> value**.
 
-每条 bullet 必须隐含完整的：**【问题】→【方法】→【机制】→【价值】**
+## Sharpness Pass
 
----
+After the first draft, run a sharpness pass before responding. This is the main guard against bland output.
 
-## 三、语言风格要求
+A bullet is bland if it only contains pain-point words but lacks at least one of these signals:
 
-语言高度凝练、强业务感、强产品感、强架构感。
+- **Business tension**: the concrete contradiction behind the work, such as accuracy vs coverage, automation vs compliance, scale vs control, speed vs quality.
+- **Product judgment**: why this mechanism was chosen instead of a simpler workflow, manual rule, or pure model call.
+- **Mechanism identity**: a named capability that sounds like a product module, not a task label.
+- **State transition**: what changed from old state to new state.
+- **Role signal**: what product judgment, coordination, or ownership the candidate actually demonstrated.
 
-### 痛点词库
+Repair bland bullets with one or two of these levers, not all of them:
 
-优先使用高度压缩的痛点词：
-慢、乱、散、杂、断、错、漏、偏、漂、堵、弱、黑盒、不可控、不可配置、不可复用、不可观测、难归因、难回归
+1. Put the business contradiction earlier.
+2. Replace generic verbs (`优化`, `支持`, `建设`, `打通`) with a mechanism verb (`治理`, `重构`, `编排`, `收敛`, `配置化`, `归因`, `回归`).
+3. Name the product mechanism before describing details.
+4. Add an old-state -> new-state transition.
+5. Make the role signal explicit without exaggerating ownership.
+6. Remove decorative jargon that does not create an interview follow-up.
 
-### 价值词库
+If the source material is thin, produce a solid restrained draft and list the missing facts needed to make it sharper. Do not create false sharpness by inventing scope, metrics, or decision authority.
 
-优先使用高度压缩的价值词：
-快、准、稳、全、顺、清、可控、可配、可编排、可复用、可扩展、可观测、可归因、可回归、可审计、可追溯、可回滚
+## Truth Boundary
 
-### 产品机制词库
+Separate facts from interpretation.
 
-优先使用产品机制类表达：
-边界治理、分层检索、标签治理、意图路由、分域 Agent、Skill 编排、动态调用、策略配置化、流程重构、任务承接、上下文管理、状态管理、强绑定生成、Bad Case 归因、评测闭环、质量回归、合规约束、人机协同、能力复用
+- **原文已有事实**: details explicitly present in the user's material.
+- **合理产品抽象**: higher-level wording that faithfully summarizes the facts.
+- **需确认补充**: numbers, scope, ownership, production status, business impact, or causal claims not proven by the source text.
 
-### 痛点词使用规范
+Never invent percentages, user counts, revenue impact, model scores, release status, or ownership level. If the source says only `参与`, do not rewrite it as `主导` unless the context proves ownership. If a metric is missing, write a metric placeholder or ask for the real number in `待确认补充`.
 
-痛点词必须采用"具体原因（凝练结果词）"的格式，原因和结果词都要写清楚，不让读者猜也不让读者推导：
-- 正确：人工创作靠经验（慢）、缺乏场景与渠道区分（同质）
-- 错误：只写"慢""同质"不给原因，或只写原因不给凝练词
+## Output Format
 
-原因与结果词必须语义不重复。"无差异化（同质）"是错误示范——两个词说的是同一件事。正确做法是原因讲"缺什么"，结果词讲"导致什么"。
+For one-pass delivery, use this structure:
 
----
+```markdown
+## 诊断
+- 核心问题:
+- 可强化信号:
+- 风险提醒:
 
-## 四、颗粒度控制原则
+## 改写版
+### 项目总述
+[for bland or high-stakes material, provide both 稳健版 and 锋利版, then recommend one]
 
-简历文本分三层，每层该写什么、不该写什么有严格边界：
+### 项目 Bullet
+- [bullet 1]
+- [bullet 2]
+- [bullet 3]
 
-### 总述层（讲矛盾和架构）
-- 写：业务对象、场景特征、核心痛点组合、架构升级方向、价值组合
-- 不写：具体数字（如"568条评测集"）、执行细节、具体字段枚举
-- 方法论数据留给成果段，执行细节留给面试追问
+### 成果段
+- 效果提升:
+- 能力沉淀:
+- 后续扩展:
 
-### Bullet 层（讲机制）
-- 写：能力模块名称、机制设计、状态升级（从什么到什么）
-- 不写：量化成果数据（留给成果段）、过细的字段/参数枚举（留给面试）
-- 关键流程步骤（如"模型预判→人工复核→差异归因→修正→回归验证"）要保留——删掉它读者就不知道机制长什么样
+## 为什么这样改
+| 原始表达 | 改写策略 | 传递的产品能力 |
+|---|---|---|
 
-### 成果段（讲量化结果和沉淀）
-- 专门承载所有量化数据
-- 从三个维度组织：效果提升 + 能力沉淀 + 后续扩展价值
-- Bullet 里不放数据，否则成果段无内容可写
+## 面试追问
+- [question] - 考察点: [point]
 
----
-
-## 五、项目总述改写
-
-总述是项目的"一句话定位"，有参考公式但不要机械套用。同一份简历中多个项目的总述必须在句式结构上有差异，避免同质化。
-
-参考公式：
-> 面向【业务对象】在【复杂场景】下的【核心痛点组合】，建设/重构【系统/平台/能力体系】。通过【关键架构/产品机制】实现【价值组合】，并形成【质量闭环/方法论资产/可扩展能力】。
-
-差异化技巧：
-- 不同项目换不同的开头结构（如"面向..."、"针对..."、"以...为切入点"）
-- 根据项目定位调整重心（系统建设型侧重架构、能力验证型侧重方法论沉淀）
-- 不要用"试点""验证"等弱化项目地位的词，除非项目确实定位如此
-
-注意：保持专业书面语，避免口语化表达（如"产品里有的"应改为"产品条款全量信息"）。
-
----
-
-## 六、Bullet 改写公式
-
-每条 bullet 优先按以下公式改写：
-
-> 【能力模块名称】：针对【痛点词 + 具体现象】，通过【产品机制 / 架构方法 / 策略设计】，将【原状态】升级为【新状态】，实现【业务价值 / 系统能力 / 质量结果】。
-
-示例：
-
-> RAG 知识边界重构：针对保险知识高相似、易串答、依据漂移等问题，通过产品级元数据治理与分层检索策略，将原文档检索升级为可过滤、可约束、可追溯的知识调用机制，降低跨产品误召回与回答不稳定风险。
-
----
-
-## 七、能力模块命名方式
-
-不要使用普通标题（如"负责知识库建设""参与系统设计"），改为有产品方法论感的模块名称：
-
-- RAG 知识边界重构
-- 检索策略分层治理
-- Agent 服务路由设计
-- Skill 标准化沉淀
-- Workflow 到 Agent 架构升级
-- 多轮状态管理
-- 上下文续接机制
-- 质量评测闭环
-- Bad Case 归因体系
-- 合规风控约束机制
-- 策略配置化能力建设
-- 业务规则产品化
-- 人机协同审核机制
-- 多渠道服务承接
-- 复杂流程任务编排
-
----
-
-## 八、禁止事项
-
-严格避免：
-
-1. 不要只写"负责、参与、完成、协助"
-2. 不要堆砌 AI 术语但不解释它们解决了什么问题
-3. 不要空泛写"提升用户体验""提高效率""优化流程"，必须说明优化了什么、通过什么机制
-4. 不要编造数据，原文没有数据不要擅自添加具体百分比
-5. 不要过度夸大，不要把执行动作包装成战略成果
-6. 不要写成论文式长句，表达要短、准、狠
-7. 不要所有 bullet 同一句式，避免机械重复
-8. 不要只关注技术实现，要突出产品判断、业务抽象、机制设计和价值闭环
-9. 不要过度精简导致失去本意——如果删掉某个表述后读者不知道你在讲什么，就应该保留
-10. 不要痛点词的原因和结果语义重复（如"无差异化（同质）"）
-11. 不要在 bullet 中放量化数据，量化数据统一放成果段
-12. 不要用口语化表达（如"产品里有的""能说的"），保持专业书面语
-
----
-
-## 九、输出步骤
-
-不要直接给最终版本。逐段输出，每段等用户确认后再进入下一段。
-
-### 第一步：项目核心矛盾提炼
-
-用 3-5 句话说明项目背后的本质问题，不要复述原文。
-
-### 第二步：痛点词提炼
-
-提炼该项目最适合使用的痛点词，并解释每个词对应的业务现象。
-
-### 第三步：解法机制提炼
-
-提炼项目中真正有产品含金量的机制，说明这些机制解决了什么问题。
-
-### 第四步：可突出产品能力
-
-判断该项目经历最适合突出哪些产品能力（如：复杂业务抽象能力、AI 架构产品化能力、RAG 策略设计能力、Agent 编排能力、质量评测闭环能力、跨流程服务承接能力、合规风控意识等）。
-
-### 第五步：项目总述
-
-输出 2 个版本：
-1. **稳健版**：适合正式简历，表达克制、可信
-2. **锋利版**：表达更有冲击力，适合 AI 产品经理岗位
-
-输出后提供术语解释（供用户理解，不放入简历），等用户确认后再进入下一步。
-
-### 第六步：逐条 Bullet 改写
-
-**一次只输出一条 bullet**，每条包含：
-1. **改写文本**
-2. **逐词能力映射**：用表格说明模块名称中每个关键词表达了什么内容、体现了什么产品能力
-3. **核心信号**：一句话说明这条 bullet 向面试官传递的信号
-
-等用户确认当前条后，再输出下一条。同时将该条对应的面试追问题写入面试题文件。
-
-### 第七步：成果段
-
-单独输出成果段，从三个维度组织：效果提升 + 能力沉淀 + 后续扩展价值。
-
-### 第八步：最终整合版
-
-将所有确认后的内容整合为可直接放入简历的完整项目经历。
-
----
-
-## 十、面试题文件
-
-在改写过程中，同步维护一份面试追问题文件，每条 bullet 确认后立即写入对应的面试题。
-
-文件格式：
-```
-# [项目名称] — 面试追问题库
-
-## [模块名称]
-
-### Q1：[问题]
-**考察点**：[面试官通过这个问题想考察什么]
-**思路提示**：[回答方向和关键点，不是标准答案]
+## 待确认补充
+- [missing fact or metric]
 ```
 
-面试题应覆盖：
-- 总述相关（业务理解、架构判断、角色边界）
-- 每条 bullet 的追问（机制细节、设计判断、边界case）
-- 成果相关（指标口径、数据归因、后续规划）
+Keep the final resume copy concise enough to paste into a resume. Put explanation outside the resume copy.
 
----
+## Granularity Rules
 
-## 十一、辅助工具
+- **Project summary**: explain business contradiction, architecture direction, and value combination. Do not put detailed metrics or field lists here.
+- **Bullets**: explain capability modules and mechanism design. Keep key process steps if removing them would make the mechanism vague.
+- **Results section**: carry metrics, capability assets, reuse value, and follow-up expansion. If metrics are absent, mark the exact missing metric.
 
-### JD 解析（scripts/jd_analyzer.py）
+## Language Rules
 
-当用户提供目标岗位 JD 时，使用此脚本提取关键词和能力要求，指导简历用词与 JD 对齐：
-- 从 URL 或本地文件解析 JD
-- 按 AI能力/产品能力/架构机制/业务场景/协作管理 五个维度提取关键词
-- 与简历内容匹配，输出覆盖率和缺失关键词建议
+- Prefer dense product language: `治理`, `重构`, `分层`, `路由`, `编排`, `配置化`, `闭环`, `可观测`, `可归因`, `可回归`, `可追溯`.
+- Pain-point wording should include cause plus compressed result: `人工创作依赖经验（慢）`, `缺乏场景与渠道区分（同质）`.
+- Avoid semantic repetition: `无差异化（同质）` is weak because the cause and result say the same thing.
+- Vary sentence structure across projects. Do not make every summary start with `面向`.
+- Avoid empty claims such as `提升用户体验`, `优化流程`, `提高效率` unless the mechanism and object are clear.
+- Avoid jargon stacking. AI terms must explain what business or quality problem they solved.
 
-```bash
-python scripts/jd_analyzer.py --url "JD链接"
-python scripts/jd_analyzer.py --file jd.txt --resume resume.txt
-```
+## Quality Rubric
 
-### 市场趋势扫描（scripts/market_scanner.py）
+Before finalizing, check the draft against this rubric:
 
-改写前可先扫描当前市场对目标岗位的能力要求热度，确保简历用词与市场趋势对齐：
-- 搜索主流招聘平台的岗位信息
-- 按能力维度统计关键词热度
-- 输出简历优化建议
+| Dimension | Pass Criteria |
+|---|---|
+| 岗位匹配度 | Uses role-relevant terms naturally, especially from a provided JD. |
+| 业务抽象 | Names the business object, scenario, and contradiction. |
+| 机制清晰度 | Shows the product mechanism or architecture method, not just actions. |
+| 面试可追问性 | Each bullet can support concrete follow-up questions. |
+| 语言密度 | Concise, resume-ready, not essay-like. |
+| 表达锋利度 | Contains business tension, product judgment, state transition, or a clear role signal. |
+| 可信度 | No fabricated metrics, ownership, or release status. |
+| 过度包装风险 | Does not turn support work into strategic leadership without evidence. |
 
-```bash
-python scripts/market_scanner.py --role "AI产品经理"
-```
+If any dimension is weak, fix the draft or call out the risk in `待确认补充`.
 
-### AI PM 术语表（references/ai_pm_glossary.md）
+## Optional References And Tools
 
-改写过程中如果需要确认术语的正确用法，查阅此文件。包含：
-- AI 架构类术语（RAG/Agent/Workflow/Skill/Memory 等）的正确与错误用法
-- 产品机制类术语（意图路由/分层检索/评测闭环等）的简历表达方式
-- 高频动词替换表（"负责"→"主导"等）
-- 容易混淆概念的区分
+- Read `references/ai_pm_glossary.md` when terminology, AI product concepts, or mechanism names need precision.
+- Read `references/resume_patterns.md` when examples, anti-patterns, or project-type templates would help.
+- Use `scripts/jd_analyzer.py --file jd.txt --resume resume.txt` only when the user provides a JD or asks for JD matching. Treat its output as keyword guidance, not as a mandatory scoring gate.
+- Do not rely on `scripts/market_scanner.py` for the default workflow. If market trend alignment is requested, use current sources/search results and cite or summarize the source basis.
